@@ -97,8 +97,9 @@ describe('markdown report', () => {
 });
 
 describe('report adapters', () => {
-  test('builds a safe, stable filename from the date', () => {
-    expect(reportFilename(new Date('2026-10-02T23:59:00Z'))).toBe('harness-audit-2026-10-02.md');
+  test('names the file by the local calendar date, not UTC', () => {
+    expect(reportFilename(new Date(2026, 9, 2, 0, 30))).toBe('harness-audit-2026-10-02.md');
+    expect(reportFilename(new Date(2026, 9, 2, 23, 59))).toBe('harness-audit-2026-10-02.md');
   });
 
   test('copies the markdown to the clipboard', async () => {
@@ -113,7 +114,7 @@ describe('report adapters', () => {
     const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:report');
     const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
 
-    downloadReport('# report', new Date('2026-10-02T00:00:00Z'), doc);
+    downloadReport('# report', new Date(2026, 9, 2, 12), doc);
 
     const blob = createObjectURL.mock.calls[0]![0] as Blob;
     expect(blob.type).toBe('text/markdown;charset=utf-8');

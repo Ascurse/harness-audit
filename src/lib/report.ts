@@ -119,8 +119,10 @@ function toSingleLine(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
+// Дата по часам пользователя: toISOString дал бы UTC, и вечером в +07 файл получал бы вчерашнее число
 export function reportFilename(date: Date): string {
-  return `harness-audit-${date.toISOString().slice(0, 10)}.md`;
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `harness-audit-${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}.md`;
 }
 
 export function copyReport(markdown: string, clipboard: Pick<Clipboard, 'writeText'>): Promise<void> {
