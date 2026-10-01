@@ -1,0 +1,178 @@
+---
+import Base from '../layouts/Base.astro';
+import { BLAST_RADIUS_ROWS, LEAD_LAG_ROWS } from '../lib/report';
+import { loadSteps } from '../lib/steps';
+
+const steps = loadSteps();
+const itemCount = steps.reduce((sum, step) => sum + step.items.length, 0);
+const answerOptions = [
+  { value: 'yes', label: 'Да' },
+  { value: 'no', label: 'Нет' },
+  { value: 'unchecked', label: 'Не проверяли' },
+];
+const appendices = [
+  { id: 'leadLag', title: 'Приложение A. Пары lead+lag', rule: 'Ни одной цели на прокси-метрике без парной lag-метрики.', columns: ['Lead (быстрый прокси)', 'Lag (результат)', 'Ваша пара'], rows: LEAD_LAG_ROWS },
+  { id: 'blastRadius', title: 'Приложение B. Карта blast-radius', rule: 'Карту рисует человек, а не агент.', columns: ['Зона', 'Что делает агент', 'Ваши модули'], rows: BLAST_RADIUS_ROWS },
+];
+// Экранируем «<», чтобы текст из YAML не мог закрыть тег script
+const checklistJson = JSON.stringify(steps).replace(/</g, '\\u003c');
+---
+
+<Base title="Модель деградировала или обвязка? Harness audit">
+  <main>
+    <h1>Модель деградировала или обвязка?</h1>
+    <p>Пять шагов harness-аудита примерно на 20 минут. Отвечайте «да», только если можете показать свидетельство: лог, конфиг или число. На выходе получится markdown-отчёт.</p>
+    <p class="hint">Ответы хранятся в ссылке и в вашем браузере, на сервер ничего не уходит. Не вписывайте в поля почты, токены и фрагменты трейсов с данными пользователей: ссылкой вы можете поделиться.</p>
+    <p><a href="audit/">Аудит на ваших трейсах →</a></p>
+
+    <p id="restore-warning" class="warning" role="alert" hidden></p>
+
+    <div id="progress" class="progress" role="status" aria-label="Прогресс">
+      Отвечено <span id="progress-count">0</span> из {itemCount}
+      <progress id="progress-bar" max={itemCount} value="0" aria-hidden="true"></progress>
+    </div>
+
+    {steps.map((step, stepIndex) => (
+      <section id={step.id} aria-labelledby={`${step.id}-title`}>
+        <h2 id={`${step.id}-title`}>Шаг {stepIndex + 1}. {step.title}</h2>
+        {step.items.map((item) => {
+          const key = `${step.id}.${item.id}`;
+          return (
+            <fieldset id={item.id} class="item">
+              <legend>{item.label}</legend>
+              <div class="answers">
+                {answerOptions.map((option) => (
+                  <label><input type="radio" name={key} value={option.value} /> {option.label}</label>
+                ))}
+              </div>
+              <label for={`evidence-${item.id}`}>Свидетельство: что посмотрели</label>
+              <textarea id={`evidence-${item.id}`} data-key={key} rows="2"></textarea>
+              <a class="hint" href={item.source} rel="noopener noreferrer">Источник пункта</a>
+            </fieldset>
+          );
+        })}
+      </section>
+    ))}
+
+    <section aria-labelledby="calculator-title">
+      <h2 id="calculator-title">Калькулятор fan-out</h2>
+      <p>Три проверки подряд: если дешёвая проверка проваливается, дорогие не нужны. Fan-out всегда тратит 3 вызова, short-circuit — в среднем 1 + p + p².</p>
+      <label for="pass-probability">Вероятность прохождения проверки p</label>
+      <input id="pass-probability" type="number" min="0" max="1" step="0.01" inputmode="decimal" aria-describedby="calculator-result" />
+      <p id="calculator-result" aria-live="polite"></p>
+    </section>
+
+    {appendices.map((appendix) => (
+      <section aria-labelledby={`${appendix.id}-title`}>
+        <h2 id={`${appendix.id}-title`}>{appendix.title}</h2>
+        <p>{appendix.rule}</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>{appendix.columns.map((column) => <th scope="col">{column}</th>)}</tr></thead>
+            <tbody>
+              {appendix.rows.map(([first, second], index) => (
+                <tr>
+                  <th scope="row">{first}</th>
+                  <td>{second}</td>
+                  <td><input id={`appendix-${appendix.id}-${index}`} type="text" aria-label={`${appendix.columns[2]}: ${first}`} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    ))}
+
+    <section aria-labelledby="report-title">
+      <h2 id="report-title">Отчёт</h2>
+      <div class="actions">
+        <button id="copy-report" type="button">Скопировать</button>
+        <button id="download-report" type="button">Скачать .md</button>
+        <span id="copy-status" role="status"></span>
+      </div>
+      <pre id="report-preview" tabindex="0" aria-label="Предпросмотр отчёта"></pre>
+      <p>Отчёт показывает, где искать. Проверить на реальных трейсах команды — это <a href="audit/">платный аудит</a>.</p>
+    </section>
+  </main>
+
+  <script type="application/json" id="checklist-data" set:html={checklistJson} />
+  <script>
+    import { start } from '../scripts/app';
+    start();
+  </script>
+</Base>
+
+<style>
+  .item {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .answers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+  }
+
+  .answers label {
+    padding: 0.25rem 0;
+  }
+
+  .warning {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: var(--warning-bg);
+  }
+
+  .progress {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 0.5rem 0;
+    background: var(--bg);
+  }
+
+  .progress progress {
+    width: 100%;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 0.4rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  pre {
+    max-height: 28rem;
+    overflow: auto;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+</style>

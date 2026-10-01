@@ -1,0 +1,21 @@
+{
+  "name": "harness-audit",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "test": "vitest run",
+    "build": "astro build",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.20.3",
+    "astro": "^5.15.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7",
+    "yaml": "^2.9.1"
+  }
+}

@@ -1,0 +1,91 @@
+steps:
+  - id: api-contract
+    title: Контракт API
+    items:
+      - id: api-tool-choice
+        label: Нет tool_choice any и принудительных имён tool
+        answerType: yes-no-unchecked
+        recommendation: "Оставьте tool_choice auto и уберите принудительные имена tool; выбор инструмента отдайте модели."
+        source: https://omidsaffari.com/blog/claude-fable-5-1-explained
+      - id: api-sampling-parameters
+        label: Нет не нужных выбранной модели budget_tokens, temperature и top_p
+        answerType: yes-no-unchecked
+        recommendation: "Удалите budget_tokens, temperature и top_p, которые выбранная модель не использует, и сверьте запрос с её документацией."
+        source: https://local-ai-zone.github.io/blog/claude-fable-5-1-technical-breakdown.html
+      - id: api-refusal-path
+        label: stop_reason refusal обрабатывается отдельной штатной веткой
+        answerType: yes-no-unchecked
+        recommendation: "Добавьте отдельную ветку для stop_reason refusal: показ причины пользователю и без автоматического повтора."
+        source: https://github.com/kenhuangus/fable5
+  - id: context-mutability
+    title: Мутабельность контекста
+    items:
+      - id: context-history
+        label: Нет sliding window, компакции и правки истории посреди задачи
+        answerType: yes-no-unchecked
+        recommendation: "Не сжимайте и не правьте историю посреди задачи; компактируйте только между задачами."
+        source: https://local-ai-zone.github.io/blog/claude-fable-5-1-technical-breakdown.html
+      - id: context-system-and-tools
+        label: System prompt и набор tools остаются неизменными при продолжении tool-use прогона
+        answerType: yes-no-unchecked
+        recommendation: "Зафиксируйте system prompt и набор tools на весь tool-use прогон; изменения — только в новом прогоне."
+        source: https://local-ai-zone.github.io/blog/claude-fable-5-1-technical-breakdown.html
+      - id: context-prefix-binding
+        label: "Гипотеза DR: инструкции шага turn-scoped; логи отмечают prefix_binding_mismatch"
+        answerType: yes-no-unchecked
+        recommendation: "Логируйте prefix_binding_mismatch и держите инструкции шага в текущем turn, а не в system prompt."
+        source: https://omidsaffari.com/blog/claude-fable-5-1-explained
+  - id: progress-telemetry
+    title: Телеметрия прогресса
+    items:
+      - id: telemetry-progress-updates
+        label: thinking.display updates или аналог рендерится как обновление прогресса
+        answerType: yes-no-unchecked
+        recommendation: "Рендерьте thinking.display или его аналог как обновление прогресса в интерфейсе."
+        source: https://local-ai-zone.github.io/blog/claude-fable-5-1-technical-breakdown.html
+      - id: telemetry-ttft-statuses
+        label: "Гипотеза DR: TTFT 30–45 секунд переведён в дискретные статусы этапов"
+        answerType: yes-no-unchecked
+        recommendation: "Разбейте ожидание первого токена на дискретные статусы этапов вместо общего спиннера."
+        source: https://www.getclaudeskills.com/blog/claude-fable-5-1-explained
+      - id: telemetry-silence
+        label: Пользователь не видит тишину во время аналитической фазы
+        answerType: yes-no-unchecked
+        recommendation: "Показывайте пользователю статус аналитической фазы, чтобы пауза не выглядела как зависание."
+        source: https://www.getclaudeskills.com/blog/claude-fable-5-1-explained
+  - id: verification-graph
+    title: Граф верификации
+    items:
+      - id: verification-pass-probability
+        label: Вероятность p прохождения проверки измерена на данных вашего harness
+        answerType: yes-no-unchecked
+        recommendation: "Измерьте p прохождения проверки на своих прогонах и пересчитайте граф калькулятором."
+        source: https://www.teahose.com/newsletter/The%20AI%20Corner/Forget%20Loop%20Engineering.%20It%E2%80%99s%20all%20about%20Graph%20Engineering%20Now
+      - id: verification-short-circuit
+        label: "Гипотеза DR: при p ниже 0.9 fan-out заменён на short-circuit от дешёвой проверки к дорогой"
+        answerType: yes-no-unchecked
+        recommendation: "При p ниже 0.9 замените fan-out на short-circuit: сначала дешёвая проверка, дорогая — только после неё."
+        source: https://www.teahose.com/newsletter/The%20AI%20Corner/Forget%20Loop%20Engineering.%20It%E2%80%99s%20all%20about%20Graph%20Engineering%20Now
+      - id: verification-write-gate
+        label: Перед записью в целевую систему есть детерминированная проверка
+        answerType: yes-no-unchecked
+        recommendation: "Поставьте детерминированную проверку (схема, тест, линтер) перед каждой записью в целевую систему."
+        source: https://viblo.asia/p/graph-engineering-a-practical-field-guide-oKLnqXdyJQO
+  - id: effort-calibration
+    title: Effort-калибровка и батчинг
+    items:
+      - id: effort-routing
+        label: low используется на парсинге и схемах, high — на планировании и синтезе
+        answerType: yes-no-unchecked
+        recommendation: "Назначайте effort по типу задачи: low — парсинг и схемы, high — планирование и синтез."
+        source: https://github.com/kenhuangus/fable5
+      - id: effort-batching-cue
+        label: "Гипотеза DR: системная инструкция просит батчить независимые tool calls; без неё замедление 3–5×"
+        answerType: yes-no-unchecked
+        recommendation: "Добавьте в системную инструкцию просьбу батчить независимые tool calls и замерьте время до и после."
+        source: https://www.getclaudeskills.com/blog/claude-fable-5-1-explained
+      - id: effort-xhigh-cost
+        label: "Независимый замер DR: xhigh потребляет до 8× больше токенов, чем high"
+        answerType: yes-no-unchecked
+        recommendation: "Оставьте xhigh только задачам, где замер показал выигрыш качества, и следите за расходом токенов."
+        source: https://www.datacamp.com/tutorial/claude-fable-5-1-api-tutorial

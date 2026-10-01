@@ -1,0 +1,140 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`markdown report > full failed report matches the snapshot, so dropping any source or recommendation fails 1`] = `
+"# Harness audit: отчёт
+
+## Сводка
+
+| Шаг | пройдено | провалено | не проверено |
+| --- | --- | --- | --- |
+| 1. Контракт API | 0 | 3 | 0 |
+| 2. Мутабельность контекста | 0 | 3 | 0 |
+| 3. Телеметрия прогресса | 0 | 3 | 0 |
+| 4. Граф верификации | 0 | 3 | 0 |
+| 5. Effort-калибровка и батчинг | 0 | 3 | 0 |
+
+## Шаг 1. Контракт API
+
+<!-- api-tool-choice -->
+- **Провалено:** Нет tool_choice any и принудительных имён tool
+  - Свидетельство: proof for api-contract.api-tool-choice
+  - Рекомендация: Оставьте tool_choice auto и уберите принудительные имена tool; выбор инструмента отдайте модели.
+  - Источник: <https://omidsaffari.com/blog/claude-fable-5-1-explained>
+
+<!-- api-sampling-parameters -->
+- **Провалено:** Нет не нужных выбранной модели budget_tokens, temperature и top_p
+  - Свидетельство: proof for api-contract.api-sampling-parameters
+  - Рекомендация: Удалите budget_tokens, temperature и top_p, которые выбранная модель не использует, и сверьте запрос с её документацией.
+  - Источник: <https://local-ai-zone.github.io/blog/claude-fable-5-1-technical-breakdown.html>
+
+<!-- api-refusal-path -->
+- **Провалено:** stop_reason refusal обрабатывается отдельной штатной веткой
+  - Свидетельство: proof for api-contract.api-refusal-path
+  - Рекомендация: Добавьте отдельную ветку для stop_reason refusal: показ причины пользователю и без автоматического повтора.
+  - Источник: <https://github.com/kenhuangus/fable5>
+
+## Шаг 2. Мутабельность контекста
+
+<!-- context-history -->
+- **Провалено:** Нет sliding window, компакции и правки истории посреди задачи
+  - Свидетельство: proof for context-mutability.context-history
+  - Рекомендация: Не сжимайте и не правьте историю посреди задачи; компактируйте только между задачами.
+  - Источник: <https://local-ai-zone.github.io/blog/claude-fable-5-1-technical-breakdown.html>
+
+<!-- context-system-and-tools -->
+- **Провалено:** System prompt и набор tools остаются неизменными при продолжении tool-use прогона
+  - Свидетельство: proof for context-mutability.context-system-and-tools
+  - Рекомендация: Зафиксируйте system prompt и набор tools на весь tool-use прогон; изменения — только в новом прогоне.
+  - Источник: <https://local-ai-zone.github.io/blog/claude-fable-5-1-technical-breakdown.html>
+
+<!-- context-prefix-binding -->
+- **Провалено:** Гипотеза DR: инструкции шага turn-scoped; логи отмечают prefix_binding_mismatch
+  - Свидетельство: proof for context-mutability.context-prefix-binding
+  - Рекомендация: Логируйте prefix_binding_mismatch и держите инструкции шага в текущем turn, а не в system prompt.
+  - Источник: <https://omidsaffari.com/blog/claude-fable-5-1-explained>
+
+## Шаг 3. Телеметрия прогресса
+
+<!-- telemetry-progress-updates -->
+- **Провалено:** thinking.display updates или аналог рендерится как обновление прогресса
+  - Свидетельство: proof for progress-telemetry.telemetry-progress-updates
+  - Рекомендация: Рендерьте thinking.display или его аналог как обновление прогресса в интерфейсе.
+  - Источник: <https://local-ai-zone.github.io/blog/claude-fable-5-1-technical-breakdown.html>
+
+<!-- telemetry-ttft-statuses -->
+- **Провалено:** Гипотеза DR: TTFT 30–45 секунд переведён в дискретные статусы этапов
+  - Свидетельство: proof for progress-telemetry.telemetry-ttft-statuses
+  - Рекомендация: Разбейте ожидание первого токена на дискретные статусы этапов вместо общего спиннера.
+  - Источник: <https://www.getclaudeskills.com/blog/claude-fable-5-1-explained>
+
+<!-- telemetry-silence -->
+- **Провалено:** Пользователь не видит тишину во время аналитической фазы
+  - Свидетельство: proof for progress-telemetry.telemetry-silence
+  - Рекомендация: Показывайте пользователю статус аналитической фазы, чтобы пауза не выглядела как зависание.
+  - Источник: <https://www.getclaudeskills.com/blog/claude-fable-5-1-explained>
+
+## Шаг 4. Граф верификации
+
+<!-- verification-pass-probability -->
+- **Провалено:** Вероятность p прохождения проверки измерена на данных вашего harness
+  - Свидетельство: proof for verification-graph.verification-pass-probability
+  - Рекомендация: Измерьте p прохождения проверки на своих прогонах и пересчитайте граф калькулятором.
+  - Источник: <https://www.teahose.com/newsletter/The%20AI%20Corner/Forget%20Loop%20Engineering.%20It%E2%80%99s%20all%20about%20Graph%20Engineering%20Now>
+
+<!-- verification-short-circuit -->
+- **Провалено:** Гипотеза DR: при p ниже 0.9 fan-out заменён на short-circuit от дешёвой проверки к дорогой
+  - Свидетельство: proof for verification-graph.verification-short-circuit
+  - Рекомендация: При p ниже 0.9 замените fan-out на short-circuit: сначала дешёвая проверка, дорогая — только после неё.
+  - Источник: <https://www.teahose.com/newsletter/The%20AI%20Corner/Forget%20Loop%20Engineering.%20It%E2%80%99s%20all%20about%20Graph%20Engineering%20Now>
+
+<!-- verification-write-gate -->
+- **Провалено:** Перед записью в целевую систему есть детерминированная проверка
+  - Свидетельство: proof for verification-graph.verification-write-gate
+  - Рекомендация: Поставьте детерминированную проверку (схема, тест, линтер) перед каждой записью в целевую систему.
+  - Источник: <https://viblo.asia/p/graph-engineering-a-practical-field-guide-oKLnqXdyJQO>
+
+## Шаг 5. Effort-калибровка и батчинг
+
+<!-- effort-routing -->
+- **Провалено:** low используется на парсинге и схемах, high — на планировании и синтезе
+  - Свидетельство: proof for effort-calibration.effort-routing
+  - Рекомендация: Назначайте effort по типу задачи: low — парсинг и схемы, high — планирование и синтез.
+  - Источник: <https://github.com/kenhuangus/fable5>
+
+<!-- effort-batching-cue -->
+- **Провалено:** Гипотеза DR: системная инструкция просит батчить независимые tool calls; без неё замедление 3–5×
+  - Свидетельство: proof for effort-calibration.effort-batching-cue
+  - Рекомендация: Добавьте в системную инструкцию просьбу батчить независимые tool calls и замерьте время до и после.
+  - Источник: <https://www.getclaudeskills.com/blog/claude-fable-5-1-explained>
+
+<!-- effort-xhigh-cost -->
+- **Провалено:** Независимый замер DR: xhigh потребляет до 8× больше токенов, чем high
+  - Свидетельство: proof for effort-calibration.effort-xhigh-cost
+  - Рекомендация: Оставьте xhigh только задачам, где замер показал выигрыш качества, и следите за расходом токенов.
+  - Источник: <https://www.datacamp.com/tutorial/claude-fable-5-1-api-tutorial>
+
+## Калькулятор fan-out
+
+p = 0.9: short-circuit тратит в среднем 2.71 вызова из 3, экономия 10%.
+
+## Приложение A. Пары lead+lag
+
+Правило: ни одной цели на прокси-метрике без парной lag-метрики.
+
+| Lead (быстрый прокси) | Lag (результат) | Ваша пара |
+| --- | --- | --- |
+| Deployment frequency | Escaped defects |  |
+| PR cycle time | Удовлетворённость пользователей |  |
+| Token usage | Надёжность в проде |  |
+
+## Приложение B. Карта blast-radius
+
+Правило: карту рисует человек, а не агент.
+
+| Зона | Что делает агент | Ваши модули |
+| --- | --- | --- |
+| Green | Tight loop: правит и проверяет сам |  |
+| Yellow | Characterization-тесты до правки, проверка другим прогоном |  |
+| Red | Только в паре с человеком |  |
+"
+`;
